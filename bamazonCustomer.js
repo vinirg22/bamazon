@@ -54,7 +54,7 @@ function IdSearch() {
         .prompt({
             name: "products",
             type: "input",
-            message: "What type of fruit would you like to buy?"
+            message: "Select your item:"
         })
         .then(function (answer) {
             var query = "SELECT product_name FROM products WHERE ?";
