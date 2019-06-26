@@ -22,33 +22,46 @@ connection.connect(function (err) {
 });
 // write code to run search and list out user choices
 function runSearch() {
-    inquirer
-        .prompt({
-            name: "action",
-            type: "list",
-            message: "What would you like to buy today?",
-            choices: [
-                "Enter ID of the product you would like to buy",
-                "How many units of this product would you like to buy?",
-                "Exit",
-            ]
-            // use switch statement with each case given for user choices
-        })
-        .then(function (answer) {
-            switch (answer.action) {
-                case "Enter ID of the product you would like to buy":
-                    IdSearch();
-                    break;
+    var query = "SELECT * FROM products ";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        // looping thru array of product length for response??
 
-                case "How many units of this product would you like to buy?":
-                    productCount();
-                    break;
 
-                case "Exit":
-                    connection.end();
-                    break;
-            }
-        });
+        inquirer
+            .prompt({
+                name: "action",
+                type: "list",
+                message: "Select you product:",
+                choices: [
+                    "Enter ID of the product you would like to buy:",
+                    "How many units of this product would you like to buy?",
+                    "Exit",
+                ]
+                // use switch statement with each case given for user choices
+            })
+            .then(function (answer) {
+                console.log(answer);
+                switch (answer.action) {
+                    case "Enter ID of the product you would like to buy:":
+                        IdSearch();
+                        break;
+
+                    case "How many will you buy?":
+                        productCount();
+                        break;
+
+                    case "Checking product availability:":
+                        productCheck();
+                        break;
+
+                    case "Exit":
+                        connection.end();
+                        break;
+                }
+            });
+    });
 }
 function IdSearch() {
     inquirer
@@ -56,14 +69,30 @@ function IdSearch() {
             name: "products",
             type: "input",
             message: "Select your item:"
+            // validate: function(val){
+            //     return !isNaN(val) || val.toLocaleLowerCase() === "q"
+            // }
+            // Once the customer has placed the order, your application should check if your store has enough of the product to meet the customer's request.
         })
-        .then(function (answer) {
-            var query = "SELECT product_name FROM products WHERE ?";
-            connection.query(query, { product_name: answer.product_name }, function (err, res) {
+        .then(function (res) {
+            // console.log(res);
+            var query = "SELECT * FROM products WHERE ?";
+            // console.log("We're in IdSearch");
+            connection.query(query, { id: res.products }, function (err, response) {
+                console.table(response);
                 if (err) throw err;
-              // looping thru array of product length for response??
+                // console.table(res);
+                // looping thru array of product length for response??
+                // for (var i = 0; i < response.length; i++) {
+                //     console.log("product_name: " + response[i].products);
+                //   }
                 runSearch();
             });
+
+            // if product quantity greater than selected quantity 
+            // update the table 
+
+            // otherwise reprompt user
 
         })
 }
@@ -71,18 +100,37 @@ function IdSearch() {
 function productCount() {
     inquirer
         .prompt({
-            name: "quantity",
+            name: "products",
             type: "input",
-            message: "What many of the items selected would you be buying?"
+            message: "How many will you buy?"
         })
+        // console.log if there is enough products
         .then(function (answer) {
-            console.log(answer.song);
             connection.query("SELECT * FROM products WHERE ?", { stock_quantity: answer.stock_quantity }, function (err, res) {
                 if (err) throw err;
-              // ??
+                // for (var i = 0; i < res.length; i++) {
+                //     console.table("stock_quantity: " + res[i].stock_quantity);
+                //   }
                 runSearch();
             });
         });
 }
+function productCheck() {
+    inquirer
+        .prompt({
+            name: "products",
+            type: "input",
+            message: "Let's check if we have what you need:"
+        })
+        .then(function (answer) {
+            connection.query(query, { id: res.products }, function (err, response) {
+                console.table(response);
+                if (err) throw err;
 
+            });
+        });
+}
+//
+// consolo.log both functions...
 
+// If not, the app should log a phrase like Insufficient quantity!, and then prevent the order from going through.
